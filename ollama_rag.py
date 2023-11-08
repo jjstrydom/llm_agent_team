@@ -1,0 +1,46 @@
+from langchain.document_loaders import WebBaseLoader
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain.vectorstores import Chroma
+from langchain.embeddings import GPT4AllEmbeddings
+from langchain.embeddings import OllamaEmbeddings  # We can also try Ollama embeddings
+from langchain import hub
+from langchain.llms import Ollama
+from langchain.callbacks.manager import CallbackManager
+from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
+from langchain.chains import RetrievalQA
+
+# Load web page
+loader = WebBaseLoader("https://lilianweng.github.io/posts/2023-06-23-agent/")
+data = loader.load()
+
+# Split into chunks
+text_splitter = RecursiveCharacterTextSplitter(chunk_size=1500, chunk_overlap=100)
+all_splits = text_splitter.split_documents(data)
+
+# Embed and store
+vectorstore = Chroma.from_documents(documents=all_splits, embedding=OllamaEmbeddings())
+
+# Retrieve
+question = "How can Task Decomposition be done?"
+docs = vectorstore.similarity_search(question)
+len(docs)
+
+# RAG prompt
+QA_CHAIN_PROMPT = hub.pull("rlm/rag-prompt-llama")
+
+# LLM
+llm = Ollama(
+    model="llama2",
+    verbose=True,
+    callback_manager=CallbackManager([StreamingStdOutCallbackHandler()]),
+)
+
+# QA chain
+qa_chain = RetrievalQA.from_chain_type(
+    llm,
+    retriever=vectorstore.as_retriever(),
+    chain_type_kwargs={"prompt": QA_CHAIN_PROMPT},
+)
+
+question = "What are the various approaches to Task Decomposition for AI Agents?"
+result = qa_chain({"query": question})
