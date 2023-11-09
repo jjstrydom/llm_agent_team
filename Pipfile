@@ -9,6 +9,7 @@ beautifulsoup4 = "*"
 gpt4all = "*"
 chromadb = "<=0.4.15"
 langchainhub = "*"
+jupyter = "*"
 
 [dev-packages]
 
