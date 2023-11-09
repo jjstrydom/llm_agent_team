@@ -1,3 +1,12 @@
+# Using ollama embeddings:
+    # Loading took 0.2535700798034668 seconds, TOTAL: 0.25357580184936523
+    # Splitting took 0.0022139549255371094 seconds, TOTAL: 0.255828857421875
+    # Storing took 994.4652690887451 seconds, TOTAL: 994.7211449146271
+    # Retrieving took 1.8037610054016113 seconds for a doc length of 4 documents, TOTAL: 996.5250060558319
+    # Loading RAG prompt took 0.8468890190124512 seconds, TOTAL: 997.3719339370728
+    # Loading LLM took 0.0008499622344970703 seconds, TOTAL: 997.3728168010712
+    # QA chain took 341.43748784065247 seconds, TOTAL: 1338.8103289604187
+
 from langchain.document_loaders import WebBaseLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.vectorstores import Chroma
