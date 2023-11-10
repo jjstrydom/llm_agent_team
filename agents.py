@@ -78,7 +78,8 @@ class PMAgent(BaseAgent):
         return self.project_plan_md
     
     def parse_project_plan(self):
-        self.project_plan = extract_content(self.project_plan_md, self.response_components)
+        output_plan_dict = markdown_to_json.dictify(self.project_plan_md)
+        self.project_plan = extract_content(output_plan_dict, self.response_components)
         return self.project_plan
     
     def generate_task_breakdown(self):
