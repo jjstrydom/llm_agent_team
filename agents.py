@@ -5,6 +5,7 @@ from langchain.prompts import PromptTemplate
 import markdown_to_json
 from response_components import ResponseComponent, tasks, timeline, deliverables, team, risks, budget, metrics, task_breakdown
 from llm_output_parser import extract_content
+from storage import text_to_parquet
 
 class BaseAgent(object):
     def __init__(self, model:str='llama2'):
@@ -113,7 +114,14 @@ if __name__ == '__main__':
 - We are proposing to use machine learning and algorithms coupled with sourcing external market data to improve forecasting.
 - We aim to achieve a better accuracy than their current forecasting process.
 """
-
-    pm_agent = PMAgent(project_brief=brief)
-    project_plan = pm_agent.generate_project_plan()
-    task_outline = pm_agent.generate_task_breakdown()
+    counter = 0
+    while True:
+        counter += 1
+        print(counter, '='*90)
+        pm_agent = PMAgent(project_brief=brief)
+        project_plan = pm_agent.generate_project_plan()
+        text_to_parquet(project_plan, 'project_plan.parquet')
+        print(counter, '-'*10)
+        task_outline = pm_agent.generate_task_breakdown()
+        text_to_parquet(task_outline, 'task_outline.parquet')
+        print(counter, '='*90)
