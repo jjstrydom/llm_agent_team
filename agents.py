@@ -74,10 +74,11 @@ class PMAgent(BaseAgent):
 
         _input = prompt.format_prompt(brief=self.project_brief, emotive_prompt=self.emotive_prompt)
         self.project_plan_md = super().prompt(_input.to_string())
+        self.response_components = response_components
         return self.project_plan_md
     
     def parse_project_plan(self):
-        self.project_plan = extract_content(self.project_plan_md)
+        self.project_plan = extract_content(self.project_plan_md, self.response_components)
         return self.project_plan
     
     def generate_task_breakdown(self):
@@ -131,6 +132,6 @@ if __name__ == '__main__':
             text_to_parquet('task_outline.parquet', task_outline)
             print('\n', counter, '='*90)
         except Exception as e:
-            print("ERROR - "*10)
+            print('\n', "ERROR - "*10)
             print(traceback.format_exc())
-            print("ERROR - "*10)
+            print('\n', "ERROR - "*10)
