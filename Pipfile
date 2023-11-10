@@ -12,6 +12,9 @@ langchainhub = "*"
 jupyter = "*"
 pydantic = "*"
 markdown-to-json = "*"
+pandas = "*"
+pyarrow = "*"
+fastparquet = "*"
 
 [dev-packages]
 
