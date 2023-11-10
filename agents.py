@@ -116,12 +116,15 @@ if __name__ == '__main__':
 """
     counter = 0
     while True:
-        counter += 1
-        print('\n', counter, '='*90)
-        pm_agent = PMAgent(project_brief=brief)
-        project_plan = pm_agent.generate_project_plan()
-        text_to_parquet('project_plan.parquet', project_plan)
-        print('\n', counter, '-'*10)
-        task_outline = pm_agent.generate_task_breakdown()
-        text_to_parquet('task_outline.parquet', task_outline)
-        print('\n', counter, '='*90)
+        try:
+            counter += 1
+            print('\n', counter, '='*90)
+            pm_agent = PMAgent(project_brief=brief)
+            project_plan = pm_agent.generate_project_plan()
+            text_to_parquet('project_plan.parquet', project_plan)
+            print('\n', counter, '-'*10)
+            task_outline = pm_agent.generate_task_breakdown()
+            text_to_parquet('task_outline.parquet', task_outline)
+            print('\n', counter, '='*90)
+        except Exception as e:
+            pass
