@@ -74,9 +74,11 @@ class PMAgent(BaseAgent):
 
         _input = prompt.format_prompt(brief=self.project_brief, emotive_prompt=self.emotive_prompt)
         self.project_plan_md = super().prompt(_input.to_string())
-        output_plan_dict = markdown_to_json.dictify(self.project_plan_md)
-        self.project_plan = extract_content(output_plan_dict, response_components)
         return self.project_plan_md
+    
+    def parse_project_plan(self):
+        self.project_plan = extract_content(self.project_plan_md)
+        return self.project_plan
     
     def generate_task_breakdown(self):
         response_components_breakdown = [
@@ -122,6 +124,7 @@ if __name__ == '__main__':
             pm_agent = PMAgent(project_brief=brief)
             project_plan = pm_agent.generate_project_plan()
             text_to_parquet('project_plan.parquet', project_plan)
+            project_plan_parsed = pm_agent.parse_project_plan()
             print('\n', counter, '-'*10)
             task_outline = pm_agent.generate_task_breakdown()
             text_to_parquet('task_outline.parquet', task_outline)
