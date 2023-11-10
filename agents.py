@@ -108,6 +108,7 @@ class PMAgent(BaseAgent):
 
 
 if __name__ == '__main__':
+    import traceback
     brief = """\
 - The project is for a big multinational firm.
 - The firm employs about 10000 people.
@@ -130,4 +131,6 @@ if __name__ == '__main__':
             text_to_parquet('task_outline.parquet', task_outline)
             print('\n', counter, '='*90)
         except Exception as e:
-            pass
+            print("ERROR - "*10)
+            print(traceback.format_exc())
+            print("ERROR - "*10)
