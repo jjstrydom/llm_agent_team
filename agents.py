@@ -1,0 +1,119 @@
+from langchain.llms import Ollama
+from langchain.callbacks.manager import CallbackManager
+from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
+from langchain.prompts import PromptTemplate
+import markdown_to_json
+from response_components import ResponseComponent, tasks, timeline, deliverables, team, risks, budget, metrics, task_breakdown
+from llm_output_parser import extract_content
+
+class BaseAgent(object):
+    def __init__(self, model:str='llama2'):
+        self.emotive_prompt = "\nThis is very important for my career."
+        self.model = model
+        self.update_model(model)
+
+    def update_model(self, model:str):
+        self.__model = Ollama(
+            model=model, callback_manager=CallbackManager([StreamingStdOutCallbackHandler()])
+        )
+
+    def prompt(self, prompt:str):
+        return self.__model(prompt)
+
+
+class PMAgent(BaseAgent):
+    def __init__(self, project_brief:str):
+        super().__init__(model='agent_pm')
+        self.update_project_brief(project_brief)
+
+    def clear_plans(self):
+        self.project_plan_md = None
+        self.project_plan = None
+        self.task_plan_md = None
+        self.task_plan = None
+
+    def update_project_brief(self, project_brief:str):
+        self.project_brief = project_brief
+        self.clear_plans()
+
+    @staticmethod
+    def structured_output_instructions_from_response_components(response_components: list[ResponseComponent]):
+        base_instruction = "The output should be a markdown code snippet formatted in the following schema:\n"
+        for n, response_component in enumerate(response_components):
+            base_instruction += f"{n+1}. A markdown heading (#) with the title {response_component.name}, followed by a desciption of {response_component.description} as a {response_component.output_format}.\n"
+        return base_instruction
+
+    def generate_project_plan(self):
+
+        response_components = [
+            tasks,
+            timeline,
+            deliverables,
+            team,
+            risks,
+            budget,
+            metrics,
+        ]
+        response_format = self.structured_output_instructions_from_response_components(response_components)
+        
+        
+        template_list = ["You have been given the following project brief. Identify and plan the key project tasks step by step.\n",
+            "{format_instructions}\n",
+            "Project Brief:\n",
+            "{brief}\n",
+            "{emotive_prompt}\n",
+        ]
+        template = ''.join(template_list)
+
+        prompt = PromptTemplate(
+            template=template,
+            input_variables=["brief", "emotive_prompt"],
+            partial_variables={"format_instructions": response_format}
+        )
+
+        _input = prompt.format_prompt(brief=self.project_brief, emotive_prompt=self.emotive_prompt)
+        self.project_plan_md = super().prompt(_input.to_string())
+        output_plan_dict = markdown_to_json.dictify(self.project_plan_md)
+        self.project_plan = extract_content(output_plan_dict, response_components)
+        return self.project_plan
+    
+    def generate_task_breakdown(self):
+        response_components_breakdown = [
+            task_breakdown,
+        ]
+        response_format = self.structured_output_instructions_from_response_components(response_components_breakdown)
+
+        template_list = [
+            "Given the following project brief, and a list of tasks to solve for the brief. Take each task in the list and plan it step by step in detail.\n",
+            "{format_instructions}\n",
+            "Project Brief:\n",
+            "{brief}\n",
+            "Tasks:\n",
+            "{tasks}\n",
+            "{emotive_prompt}\n",
+        ]
+        template = ''.join(template_list)
+        prompt = PromptTemplate(
+            template=template,
+            input_variables=["brief", "tasks", "emotive_prompt"],
+            partial_variables={"format_instructions": response_format}
+        )
+
+        _input = prompt.format_prompt(brief=self.project_brief, tasks=self.project_plan['tasks'], emotive_prompt=self.emotive_prompt)
+        task_plan = super().prompt(_input.to_string())
+        return task_plan
+
+
+if __name__ == '__main__':
+    brief = """\
+- The project is for a big multinational firm.
+- The firm employs about 10000 people.
+- The firm is grouped into a hierarchical structure, where each group specialises in a different industry or competency.
+- The firm is struggling to forecast its revenue accurately for one of the competencies.
+- We are proposing to use machine learning and algorithms coupled with sourcing external market data to improve forecasting.
+- We aim to achieve a better accuracy than their current forecasting process.
+"""
+
+    pm_agent = PMAgent(project_brief=brief)
+    project_plan = pm_agent.generate_project_plan()
+    task_outline = pm_agent.generate_task_breakdown()
