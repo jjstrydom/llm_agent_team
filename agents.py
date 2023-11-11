@@ -2,9 +2,8 @@ from langchain.llms import Ollama
 from langchain.callbacks.manager import CallbackManager
 from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 from langchain.prompts import PromptTemplate
-import markdown_to_json
 from response_components import ResponseComponent, tasks, timeline, deliverables, team, risks, budget, metrics, task_breakdown
-from llm_output_parser import extract_content
+from llm_output_parser import extract_tasks_content
 from storage import text_to_parquet
 
 class BaseAgent(object):
@@ -78,8 +77,7 @@ class PMAgent(BaseAgent):
         return self.project_plan_md
     
     def parse_project_plan(self):
-        output_plan_dict = markdown_to_json.dictify(self.project_plan_md)
-        self.project_plan = extract_content(output_plan_dict, self.response_components)
+        self.project_plan = extract_tasks_content(self.project_plan_md, self.response_components)
         return self.project_plan
     
     def generate_task_breakdown(self):
@@ -126,11 +124,11 @@ if __name__ == '__main__':
             print('\n', counter, '='*90)
             pm_agent = PMAgent(project_brief=brief)
             project_plan = pm_agent.generate_project_plan()
-            text_to_parquet('project_plan.parquet', project_plan)
+            text_to_parquet('data/project_plan.parquet', project_plan)
             project_plan_parsed = pm_agent.parse_project_plan()
             print('\n', counter, '-'*10)
             task_outline = pm_agent.generate_task_breakdown()
-            text_to_parquet('task_outline.parquet', task_outline)
+            text_to_parquet('data/task_outline.parquet', task_outline)
             print('\n', counter, '='*90)
         except Exception as e:
             print('\n', "ERROR - "*10)

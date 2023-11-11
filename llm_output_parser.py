@@ -1,6 +1,7 @@
 import json
 import re
 from response_components import ResponseComponent
+import markdown_to_json
 
 def find_headings(response_components: ResponseComponent, text: str):
     if type(text) != str:
@@ -41,7 +42,8 @@ def extract_hidden_list(text:str):
         hidden_list.extend(loaded)
     return hidden_list
 
-def extract_content(input_dict: dict, response_components: list):
+def extract_tasks_content(text: str, response_components: list):
+    input_dict = markdown_to_json.dictify(text)
     result_dict = {}
     for l in input_dict:
         result = find_headings(response_components, l)
