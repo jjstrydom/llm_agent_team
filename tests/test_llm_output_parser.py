@@ -34,10 +34,12 @@ class TestProjectPlan(TestCaseLogging):
     @run_on_all_project_plan_data
     def test_extract_tasks(self, data):
         extracted_data = extract_tasks_content(data, project_plan_components)
-        self.assertIn('tasks', extracted_data.keys())
+        self.assertIn('tasks', extracted_data.keys(),
+                      data={'data': data, 'keys': extracted_data.keys()})
         if 'tasks' in extracted_data.keys():
             tasks_data = extracted_data['tasks']
-            self.assertEqual(type(tasks_data), list)
+            self.assertEqual(type(tasks_data), list,
+                             data={'data': data, 'tasks_data': tasks_data})
             for li in tasks_data:
                 self.assertEqual(type(li), str)
                 if isinstance(li, str):

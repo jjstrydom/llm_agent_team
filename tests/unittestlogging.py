@@ -1,6 +1,7 @@
 import unittest
 import logging
 import traceback
+from pprint import pformat
 
 class TestCaseLogging(unittest.TestCase):
     def __init__(self, *args):
@@ -13,21 +14,24 @@ class TestCaseLogging(unittest.TestCase):
     def get_traceback():
         return '\n'.join([a for a in traceback.format_exc().split('\n') if 'unittestlogging.py' not in a])
 
-    def log_all_arguments(self, args):
+    def log_all_arguments(self, args, data):
         for arg in args:
             logging.warning(arg)
+        if data:
+            logging.warning(pformat(data))
 
     def log_data(self, func):
-        def wrapper(self, *args):
+        def wrapper(self, *args, **kwargs):
+            data = kwargs.pop('data', None)
             try:
-                func(self, *args)
+                func(self, *args, **kwargs)
                 if self.log_successes:
                     logging.error("SUCCESS")
-                    self.log_all_arguments(args)
+                    self.log_all_arguments(args, data)
             except Exception as e:
                 if self.log_failures:
                     logging.error("FAILURE")
-                    self.log_all_arguments(args)
+                    self.log_all_arguments(args, data)
                     logging.error(self.get_traceback())
                 raise
         return wrapper
