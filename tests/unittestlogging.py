@@ -29,8 +29,7 @@ class TestCaseLogging(unittest.TestCase):
                     logging.error("FAILURE")
                     self.log_all_arguments(args)
                     logging.error(self.get_traceback())
-                    
-                # raise
+                raise
         return wrapper
 
     def setup_logging(self, log_failures:bool=True, log_successes:bool=False, filename:str = 'logs.log', level=logging.DEBUG):
