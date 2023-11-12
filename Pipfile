@@ -15,6 +15,7 @@ markdown-to-json = "*"
 pandas = "*"
 pyarrow = "*"
 fastparquet = "*"
+markdown = "*"
 
 [dev-packages]
 
