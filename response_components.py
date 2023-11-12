@@ -45,3 +45,6 @@ metrics = ResponseComponent(
         description="the project metrics to measure success against",
         output_format="markdown list",
     )
+
+project_plan_components = [tasks, task_breakdown, timeline, deliverables, team, risks, budget, metrics]
+task_outline_components = [task_breakdown]

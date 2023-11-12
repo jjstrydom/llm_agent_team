@@ -2,7 +2,7 @@ from langchain.llms import Ollama
 from langchain.callbacks.manager import CallbackManager
 from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 from langchain.prompts import PromptTemplate
-from response_components import ResponseComponent, tasks, timeline, deliverables, team, risks, budget, metrics, task_breakdown
+from response_components import ResponseComponent, project_plan_components, task_outline_components
 from llm_output_parser import extract_tasks_content
 from storage import text_to_parquet
 
@@ -45,16 +45,7 @@ class PMAgent(BaseAgent):
 
     def generate_project_plan(self):
 
-        response_components = [
-            tasks,
-            timeline,
-            deliverables,
-            team,
-            risks,
-            budget,
-            metrics,
-        ]
-        response_format = self.structured_output_instructions_from_response_components(response_components)
+        response_format = self.structured_output_instructions_from_response_components(project_plan_components)
         
         
         template_list = ["You have been given the following project brief. Identify and plan the key project tasks step by step.\n",
@@ -73,7 +64,7 @@ class PMAgent(BaseAgent):
 
         _input = prompt.format_prompt(brief=self.project_brief, emotive_prompt=self.emotive_prompt)
         self.project_plan_md = super().prompt(_input.to_string())
-        self.response_components = response_components
+        self.response_components = project_plan_components
         return self.project_plan_md
     
     def parse_project_plan(self):
@@ -81,10 +72,7 @@ class PMAgent(BaseAgent):
         return self.project_plan
     
     def generate_task_breakdown(self):
-        response_components_breakdown = [
-            task_breakdown,
-        ]
-        response_format = self.structured_output_instructions_from_response_components(response_components_breakdown)
+        response_format = self.structured_output_instructions_from_response_components(task_outline_components)
 
         template_list = [
             "Given the following project brief, and a list of tasks to solve for the brief. Take each task in the list and plan it step by step in detail.\n",
