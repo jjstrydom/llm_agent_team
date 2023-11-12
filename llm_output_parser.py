@@ -1,6 +1,6 @@
 import json
 import re
-from response_components import ResponseComponent
+from response_components import ResponseComponent, project_plan_components
 import markdown_to_json
 
 def find_headings(response_components: ResponseComponent, text: str):
@@ -8,7 +8,7 @@ def find_headings(response_components: ResponseComponent, text: str):
         return None
     text_to_test = text.lower()
     for component in response_components:
-        if component.name.lower() in text_to_test and len(text_to_test) <= len(component.name)*2:
+        if component.name.lower() in text_to_test:
             return component.name
 
 def flatten_list(the_list: list, nr_prefix=''):
@@ -28,17 +28,10 @@ def flatten_list(the_list: list, nr_prefix=''):
 
 def extract_hidden_list(text:str):
     hidden_list_strs = re.findall(r'\[[\"|\'](.*?)[\"|\']\]', text)
-    # print('='*90)
-    # print(text)
-    # print('-'*10)
-    # print(hidden_list_strs)
-    # print('='*90)
     hidden_list = []
     for n, hl in enumerate(hidden_list_strs):
         loading_str = f'["{hl}"]'.replace('\n','').replace("',","\",").replace(", '",", \"")
-        # print(loading_str)
         loaded = json.loads(loading_str)
-        # print(type(loaded), loaded)
         hidden_list.extend(loaded)
     return hidden_list
 
@@ -52,14 +45,16 @@ def extract_tasks_content(text: str, response_components: list):
 
     for k, v in result_dict.items():
         hidden_list = []
-        # print(k, type(v))
         if isinstance(v, str):
             hidden_list = extract_hidden_list(v)
-            # print(hidden_list)
         if hidden_list:
             v = hidden_list
-        # if k == 'team':
-        #     print(type(result_dict[k]))
-        #     print(result_dict[k])
         result_dict[k] = flatten_list(v)
     return result_dict
+
+if __name__ == "__main__":
+    import pandas as pd
+    df = pd.read_parquet('data/project_plan.parquet')
+    data = df.loc[0].iloc[0]
+    extracted = extract_tasks_content(data, project_plan_components)
+    
