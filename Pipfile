@@ -16,6 +16,7 @@ pandas = "*"
 pyarrow = "*"
 fastparquet = "*"
 markdown = "*"
+lxml = "*"
 
 [dev-packages]
 

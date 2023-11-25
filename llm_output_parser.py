@@ -2,14 +2,25 @@ import json
 import re
 from response_components import ResponseComponent, project_plan_components
 import markdown_to_json
+import markdown 
+from bs4 import BeautifulSoup
+from pprint import pprint
 
-def find_headings(response_components: ResponseComponent, text: str):
-    if type(text) != str:
-        return None
-    text_to_test = text.lower()
-    for component in response_components:
-        if component.name.lower() in text_to_test:
-            return component.name
+def find_headings(soup, project_plan_components):
+    project_plan_component_names = [c.name for c in project_plan_components]
+    headings = soup.find_all(re.compile("^h[1-6]$"))
+    headings = [h for h in headings if any([p.lower() in h.text.lower() for p in project_plan_component_names])]
+    return headings
+        
+def find_contents(headings):
+    content = {}
+    for h in headings:
+        content[h.text] = []
+        for c in drop_from_list(list(h.next_siblings),"\n"):
+            if c in headings:
+                break
+            content[h.text].append(c)
+    return content
 
 def flatten_list(the_list: list, nr_prefix=''):
     if not isinstance(the_list, list):
@@ -35,26 +46,28 @@ def extract_hidden_list(text:str):
         hidden_list.extend(loaded)
     return hidden_list
 
-def extract_tasks_content(text: str, response_components: list):
-    input_dict = markdown_to_json.dictify(text)
-    result_dict = {}
-    for l in input_dict:
-        result = find_headings(response_components, l)
-        if result is not None:
-            result_dict[result] = input_dict[l]
+def drop_from_list(the_list:list, item_to_drop):
+    return list(filter(lambda item: item != item_to_drop, the_list))
 
-    for k, v in result_dict.items():
-        hidden_list = []
-        if isinstance(v, str):
-            hidden_list = extract_hidden_list(v)
-        if hidden_list:
-            v = hidden_list
-        result_dict[k] = flatten_list(v)
-    return result_dict
+def add_hash(match):
+    return '#' + match.group(1)
+
+def clean_plain_text(text: str):
+    pattern = re.compile(r'(?<=\n\n)([^#\n]+:)(?=\n\n)')
+    text = pattern.sub(add_hash, text)
+    return text
+
+def extract_tasks_content(text: str, response_components: list):
+    clean = clean_plain_text(text)
+    html = markdown.markdown(clean)
+    soup = BeautifulSoup(html, 'lxml')
+    headings = find_headings(soup, response_components)
+    content = find_contents(headings)
+    pprint(content)
+
 
 if __name__ == "__main__":
     import pandas as pd
     df = pd.read_parquet('data/project_plan.parquet')
-    data = df.loc[0].iloc[0]
+    data = df.loc[2].iloc[0]
     extracted = extract_tasks_content(data, project_plan_components)
-    
